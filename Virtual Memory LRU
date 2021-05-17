@@ -1,0 +1,175 @@
+#library
+import os
+import time
+clear = lambda:os.system('clear')
+
+#functions
+def header():
+  print("ML-ACT6: LRU")
+  print("Manangat, Renz Darryl M.\n")
+
+def clearscreen():
+  input("\nPress Enter to continue...")
+  clear()
+  
+#inputs
+header()
+validation = False
+while validation == False:
+  frameCount = input("\nEnter number of frames: ")
+  if frameCount.isnumeric():
+    if int(frameCount) > 0:
+      validation = True
+      frameCount = int(frameCount)
+    
+    else:
+      print("Negative numbers not accepted!")
+  else:
+    print("Invalid Input")
+
+validation = False
+while validation == False:
+  pageCount = input("\nEnter number of pages: ")
+  if pageCount.isnumeric():
+    if int(pageCount) > 0:
+      validation = True
+      pageCount = int(pageCount)
+    
+    else:
+      print("Negative numbers not accepted!")
+  else:
+    print("Invalid Input")    
+
+validation = False
+while validation == False:
+  requestCount = input("\nEnter number of requested pages: ")
+  if requestCount.isnumeric():
+    if int(requestCount) > 0:
+      validation = True
+      requestCount = int(requestCount)
+    
+    else:
+      print("Negative numbers not accepted!")
+  else:
+    print("Invalid Input") 
+print(" ")
+
+#input type
+validation = False
+while validation == False:
+  pageType = input("\nEnter page type(A/1): ")
+  
+  if pageType.isnumeric():
+    pageTypeNum = True
+    validation = True
+  elif pageType.isalpha():
+    pageTypeNum = False
+    validation = True
+  else:
+    print("Invalid Input!")
+pages = []
+
+#clearscreen
+clearscreen()
+
+#page input
+header()
+for i in range(0, requestCount):
+  validation = False
+  
+  while validation == False:
+    if pageTypeNum == True:
+      page = input("\nEnter page number " + str(i+1) + ": ")
+      if page.isnumeric():
+        if int(page) < pageCount:
+          validation = True
+          pages.append(page)
+        
+        else: 
+          print("Page exceeded! Please input again!")
+      
+      else:
+        print("Invalid input type. Please input again. \n")
+        
+    elif pageTypeNum == False:
+      page = input("\nEnter page number " + str(i+1) +": ")
+      if page.isalpha():
+        if 26 - (ord('z') - ord(page.lower())) <= pageCount:
+          validation = True
+          pages.append(page)
+        
+        else: 
+          print("Page exceeded! Please input again!")
+      
+      else:
+        print("Invalid input type! Please input again. \n")
+
+clearscreen()
+#display the requested pages
+header()
+print("Requested Pages:\n")
+for i in range(0, requestCount+1):
+  if i == 0:
+    print("\t ", end="")
+  elif i > 0:
+    print(pages[i-1] + " ", end="")
+
+for i in range(0, frameCount):
+  print("\nFrame " + str(i+1))
+
+clearscreen()
+#creating the set
+currentSet = []
+for i in range(0, frameCount):
+  currentSet.append("FREE")
+
+queue = []
+hitCount = 0
+faultCount = 0
+#main algorithm
+for i in range(0, requestCount):
+  pageFault = True
+  for j in range(0, frameCount):
+    #populating the free slots
+    if currentSet[frameCount-1] == "FREE":
+      if currentSet[j] == 'FREE':
+        currentSet[j] = pages[i]
+        queue.append(currentSet[j])
+        break
+    
+    else:
+      if pages[i] not in currentSet and currentSet[j] == queue[0]:
+        currentSet[j] = pages[i]
+        queue.remove(queue[0])
+        queue.append(currentSet[j])
+        pageFault = True
+        break
+      
+      elif pages[i] in currentSet:
+        pageFault = False
+        queue.remove(pages[i])
+        queue.append(pages[i])
+        break
+      
+      else:
+        continue
+  
+  #display
+  header()
+  print("\nRequested Page: " + pages[i] + "\n")
+  for k in range(0, frameCount):
+    print("Frame " + str(k+1) + ":\t" + currentSet[k] + "\n")
+  if pageFault:
+    print("\t\t*")
+    faultCount += 1
+  elif not pageFault:
+    print("\t\t-")
+    hitCount += 1
+  clearscreen()
+  
+#conclusion
+header()
+print("Number of Page Fault(s): " + str(faultCount))
+print("Number of Page Hit(s): " + str(hitCount))
+    
+    
