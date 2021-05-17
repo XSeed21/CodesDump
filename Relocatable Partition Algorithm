@@ -1,0 +1,126 @@
+#library
+import os
+import time
+clear = lambda:os.system('clear')
+
+#functions
+def header():
+  print("ML-ACT4: Relocatable Dynamic Partition Scheme")
+  print("Manangat, Renz Darryl M.\n")
+
+def clearscreen():
+  input("\nPress Enter to continue...")
+  clear()
+
+def allocate():
+  currentAllocSet.append(i)
+  currentTurnAround.append(turnAround[i])
+  currentSizeSet.append(jobList[i])
+  jobAllocated.append(i)
+
+def printSet():
+  print("OS\t\t" + str(OS) + "MB\n")
+  for i in range(0, len(currentAllocSet)):
+    if currentAllocSet[i] != "FREE":
+      print("Partition " + str(i+1) + "\tJob " + str(currentAllocSet[i]+1) + " (" +str(currentSizeSet[i]) + "MB)"+ "\n")
+    else:
+      print("Partition " + str(i+1) + "\t" + currentAllocSet[i] + "(" + str(freespace) + "MB)" + "\n")
+  input("\nPress enter to continue...")
+  
+#inputs
+header()
+memory = int(input("Input memory capacity: "))
+OS = int(input("Input OS size: "))
+
+#spacer
+print()
+
+#jobs
+print("Enter memory capacity of each job")
+jobList = []
+turnAround = []
+for i in range(0, 10):
+  job = int(input("\nInput Job (" + str(i + 1) + "/10): "))
+  tat = int(input("Input Turn Around Time for Job " + str(i + 1) +": "))
+  jobList.append(job)
+  turnAround.append(tat)
+
+#data sets
+currentAllocSet = []
+currentTurnAround = []
+currentSizeSet = []
+
+clearscreen()
+
+#allocation
+set = 1
+finished = False
+jobAllocated = []
+jobWaiting = []
+jobFail = []
+available = memory - OS
+while not finished:
+  for i in range(0, 10):
+    
+    if i in jobAllocated:
+      continue
+    
+    elif i in jobWaiting:
+      if available - jobList[i] >= 0:
+        allocate()
+        available -= jobList[i]
+        
+    elif available - jobList[i] >= 0:
+      allocate()
+      available -= jobList[i]
+      
+    else:
+      if i not in jobWaiting:
+        jobWaiting.append(i)
+
+  if available > 0:
+    currentAllocSet.append("FREE")
+    freespace = available
+    currentTurnAround.append(1)
+    currentSizeSet.append(freespace)
+    available -= freespace
+
+  header()
+  print("Set " + str(set))
+  print("\nAllocating\n")
+  printSet()
+
+  #Deallocating
+  for i in range(0, len(currentTurnAround)):
+    currentTurnAround[i] -= 1
+  
+  i = 0
+  while i < len(currentAllocSet):
+    if currentTurnAround[i] == 0 or currentAllocSet[i] == "FREE":
+      currentTurnAround.remove(currentTurnAround[i])
+      currentAllocSet.remove(currentAllocSet[i])
+      available += currentSizeSet[i]
+      currentSizeSet.remove(currentSizeSet[i])
+    
+    else:
+      i+=1
+    
+  print("\nDeallocating\n")
+  printSet()
+
+  set+=1
+  clear()
+  
+  #exit
+  if len(jobAllocated) + len(jobFail) == len(jobList):
+    if not currentTurnAround:
+      finished = True
+
+
+
+#Conclusion
+header()
+print("Conclusion:\n")
+print(str(len(jobAllocated)) + " out of 10 memories were allocated within " + str(set-1) + " sets.\n")
+for i in range(0, len(jobFail)):
+  print("Job " + str(jobFail[i] + 1) + " failed to run\n")
