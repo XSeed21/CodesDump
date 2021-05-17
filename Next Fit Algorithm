@@ -1,0 +1,174 @@
+#library
+import os
+import time
+clear = lambda:os.system('clear')
+
+jobFail = []
+
+#functions
+def header():
+  print("ML-ACT2: Fixed Partition Next Fit Algorithm")
+  print("Manangat, Renz Darryl M.\n")
+
+def clearscreen():
+  input("\nPress Enter to continue...")
+  clear()
+
+def allocate():
+  currentAllocSet[i] = j
+  currentSizeSet[i] = jobList[j]
+  jobAllocated.append(j)
+
+def printSet():
+  print("OS\t\t\t" + str(OS) + "MB\n")
+  for i in range(0, partitions):
+    if currentAllocSet[i] != "FREE":
+      print("Partition " + str(i+1) + "(" + str(partSize[i]) + "MB)" + "\tJob " + str(currentAllocSet[i]+1) + " (" +str(currentSizeSet[i]) + "MB)"+ "\n")
+    else:
+      print("Partition " + str(i+1) + "(" + str(partSize[i]) + "MB)" + "\t" + currentAllocSet[i] + "\n")
+  input("\nPress enter to continue...")
+      
+header()
+#input
+memory = int(input("\nInput Memory Capacity: "))
+OS = int(input("Input OS Size: "))
+partitions = int(input("Input number of Partitions: "))
+  
+#partitions
+memoryExceed = True
+largestPartition = 0
+while memoryExceed:
+  print("\nEnter memory capacity of each partition")
+  print("\nPartitions: " + str(partitions))
+  sizeSum = 0
+  partSize = []
+  for i in range(0, partitions):
+    print("\nAvailable Size: " + str(memory - OS - sizeSum) + " MB")
+    partSize.append(int(input("Partition " + str(i+1) + " size: ")))
+    sizeSum += partSize[i]
+    
+    if partSize[i] > largestPartition:
+      largestPartition = partSize[i]
+      
+    if memory - OS - sizeSum == 0 or memory - OS - sizeSum < 0:
+      break
+    
+    
+  if memory - OS - sizeSum == 0 and i != partitions - 1:
+    print("\nNot all partitions have been allocated with memory! Please input again.")
+    clearscreen()
+    header()
+    
+  elif memory - OS - sizeSum < 0:
+    print("\nExceeded Memory Cap!")
+    clearscreen()
+    header()
+  
+  elif memory - OS - sizeSum > 0:
+    print("\nThere are leftover memories remaining! Please input again.")
+    clearscreen()
+    header()
+    
+  else:
+    memoryExceed = False
+    clearscreen()
+
+header()
+#Job Input
+print("\nEnter memory capacity of each job")
+jobList = []
+for i in range(0, 8):
+  jobList.append(int(input("Enter Job (" + str(i+1) + "/8):")))
+clearscreen()
+
+header()
+#Job List
+print("\nJob List")
+for i in range(len(jobList)):
+  print("Job "+ str(i+1) + ": " + str(jobList[i]) + " MB")
+  
+#Data Sets
+currentAllocSet = []
+currentSizeSet = []
+for i in range(0, partitions):
+  currentAllocSet.append("FREE")
+  currentSizeSet.append(int(0))
+clearscreen()
+
+#nextfitalgorithm
+jobAllocated = []
+jobWaiting = []
+set = 1
+finished = False
+while not finished:
+  header()
+  #Allocation
+  lastIndex = 0
+  j = 0
+  while j < 8:
+    for i in range(lastIndex, partitions):
+      
+      if lastIndex == partitions - 1:
+        lastIndex = 0
+      
+      elif j in jobAllocated:
+        break
+      
+      elif j in jobWaiting and currentAllocSet[i] == "FREE" and jobList[j] <= partSize[i]:
+        allocate()
+        lastIndex = i
+        j = 0
+        break
+      
+      elif jobList[j] <= partSize[i] and currentAllocSet[i] == "FREE":
+        allocate()
+        lastIndex = i
+        j = 0
+        break
+
+      elif jobList[j] > largestPartition:
+        if j not in jobFail:
+          jobFail.append(j)
+          break
+
+      else:
+        if j not in jobWaiting:
+          jobWaiting.append(j)
+    
+    j+=1
+
+  print("Allocation Set " + str(set) + "\n")
+  printSet()
+
+  #Deallocation
+  for i in range(0,2):
+    lowest = largestPartition + 1
+    for j in range(0, partitions):
+      if lowest > currentSizeSet[j] and currentAllocSet[j] != "FREE":
+        lowest = currentSizeSet[j]
+        lowest_index = j
+        
+    currentAllocSet[lowest_index] = "FREE"
+  
+  print("\nDeallocating 2 smallest jobs\n")
+  time.sleep(0.50)
+  printSet()
+  clear()
+  set += 1
+  
+  #Exit
+  if len(jobAllocated) + len(jobFail) == len(jobList):
+    for i in range(0, partitions):
+      if currentAllocSet[i] in range(0,10):
+        finished = False
+        break
+      else:
+        finished = True
+
+#Conclusion
+header()
+print("Conclusion:\n")
+print(str(len(jobAllocated)) + " out of 8 memories were allocated within " + str(set-1) + " sets.\n")
+for i in range(0, len(jobFail)):
+  print("Job " + str(jobFail[i] + 1) + " failed to run\n")
+  
