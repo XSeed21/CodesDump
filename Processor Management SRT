@@ -1,0 +1,182 @@
+#library
+import os
+import time
+clear = lambda:os.system('clear')
+
+#functions
+def header():
+  print("FL-ACT6: SRT")
+  print("Manangat, Renz Darryl M.\n")
+
+def clearscreen():
+  input("\nPress Enter to continue...")
+  clear()
+
+def processList():
+  print("Process List:\n")
+  categories = ["Processes", "Arrival Time", "Burst Time"]
+  for a in range(0, processCount+1):
+    if a == 0:
+      for b in range(0, 3):
+        print(categories[b], end="\t")
+    
+    else:
+      print(processArr[a-1], arrivalArr[a-1], burstArr[a-1], sep="\t\t")
+#inputs
+header()
+
+#input process count
+processArr = []
+validation = False
+while validation == False:
+  processCount = input("\nEnter number of processes: ")
+  if processCount.isnumeric():
+    if int(processCount) > 0:
+      validation = True
+      processCount = int(processCount)
+    
+    else:
+      print("Invalid Input!")
+  else:
+    print("Invalid Input!")
+
+#input arrival time and burst time  
+arrivalArr = []
+burstArr = []
+for i in range(0, processCount):
+  print("\nP" + str(i+1) + ":")
+  processArr.append("P" + str(i+1))
+  validation = False
+  while validation == False:
+    arrival = input("\nEnter arrival time: ")
+    if arrival.isnumeric():
+      if int(arrival) >= 0:
+        validation = True
+        arrivalArr.append(int(arrival))
+      
+      else:
+        print("Invalid Input!")
+    else:
+      print("Invalid Input!")
+  
+  validation = False
+  while validation == False:
+    burst = input("\nEnter burst time: ")
+    if burst.isnumeric():
+      if int(burst) >= 0:
+        validation = True
+        burstArr.append(int(burst))
+      
+      else:
+        print("Invalid Input!")
+    else:
+      print("Invalid Input!")
+
+clearscreen()
+#display
+
+#timeline
+finished = []
+timeArrived = []
+timeCompleted = []
+section = "|------|"
+timeline = ""
+processed = []
+order = list(arrivalArr)
+order.sort()
+orderBurst = list(burstArr)
+orderBurst.sort()
+queue = []
+progress = 0
+
+
+processIndex = arrivalArr.index(order[0])
+while len(finished) < processCount:
+  header()
+  processList()
+  flag = False
+  
+  while flag == False:
+    #idle
+    if arrivalArr[processIndex] > progress:
+      processed.append("IDLE")
+      timeline += section
+      progress += arrivalArr[processIndex] - progress
+      flag = True
+      
+    #incrementing progress
+    progress += 1
+    #decrementing burst time
+    burstArr[processIndex] -= 1
+    
+    #crossing arrival time  
+    if progress in arrivalArr:
+      lowest = max(burstArr)
+      for j in range(0, processCount):
+        if burstArr[j] < lowest and arrivalArr[j] <= progress and burstArr[j] > 0:
+          lowest = burstArr[j]
+
+      if burstArr[arrivalArr.index(progress)] < burstArr[processIndex]:
+        processed.append(processArr[processIndex])
+        timeline += section
+        completionTime = progress
+        if burstArr[processIndex] == 0:
+          timeCompleted.append(completionTime)
+          finished.append(processArr[processIndex])
+        processIndex = burstArr.index(lowest)
+        flag = True
+      
+      elif burstArr[arrivalArr.index(progress)] >= burstArr[processIndex]:
+        continue
+      
+    elif burstArr[processIndex] == 0:
+      processed.append(processArr[processIndex])
+      timeline += section
+      completionTime = progress
+      timeCompleted.append(completionTime)
+      finished.append(processArr[processIndex])
+      
+      lowest = max(burstArr)
+      for j in range(0, processCount):
+        if burstArr[j] < lowest and arrivalArr[j] <= progress and burstArr[j] > 0:
+          lowest = burstArr[j]
+      
+      processIndex = burstArr.index(lowest)
+        
+      flag = True
+      
+      
+      
+  #print timeline
+  print("\nTimeline:\n")
+  print(timeline)
+  for j in range(0,len(processed)):
+    if processed[j] == "IDLE":
+      print("  " + processed[j],end="  ")
+    else:
+      print("   " + processed[j],end="   ")
+  
+  if timeCompleted or processed[j]!="IDLE":
+    print("\n\nCompleted time: " + str(completionTime))
+  clearscreen()
+  
+  if len(finished) == processCount:
+    aveTurn = 0
+    aveWait = 0
+    totalTimeComp = 0
+    totalArrived = 0
+    totalBurst = 0
+    for x in range(0, processCount):
+      totalTimeComp += timeCompleted[x]
+      totalArrived += arrivalArr[x]
+      totalBurst += orderBurst[x]
+      
+    aveTurn = totalTimeComp - totalArrived
+    aveWait = totalTimeComp - totalArrived - totalBurst
+
+    aveTurn /= processCount
+    aveWait /= processCount
+    
+    header()
+    print("\nAverage turnaround time: " + str(round(aveTurn,2)))
+    print("\nAverage waiting time: " + str(round(aveWait,2)))
